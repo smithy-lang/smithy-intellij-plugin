@@ -2,11 +2,13 @@ package software.amazon.smithy.intellij
 
 import com.intellij.jarRepository.JarRepositoryManager
 import com.intellij.jarRepository.RemoteRepositoryDescription
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.libraries.ui.OrderRoot
 import org.jetbrains.idea.maven.aether.ArtifactKind
 import org.jetbrains.jps.model.library.JpsMavenRepositoryLibraryDescriptor
+import software.amazon.smithy.intellij.SmithyVariableExpansion.UnresolvedSmithyVariableException
 import java.util.EnumSet
 
 /**
@@ -14,8 +16,13 @@ import java.util.EnumSet
  * [JarRepositoryManager], returning the [OrderRoot]s that should be attached to a Smithy
  * module's library so that dependencies declared in `smithy-build.json` become visible to
  * editor features (completion, navigation, etc.).
+ *
+ * `${VAR}` placeholders in coordinates and repository fields are expanded against system
+ * properties and environment variables (matching the Smithy CLI's load-time behavior). An
+ * entry referencing an unset variable is skipped rather than failing the entire sync.
  */
 object SmithyDependencyResolver {
+    private val LOG = Logger.getInstance(SmithyDependencyResolver::class.java)
     private val ARTIFACT_KINDS: Set<ArtifactKind> = EnumSet.of(ArtifactKind.ARTIFACT)
 
     fun resolve(
@@ -25,9 +32,16 @@ object SmithyDependencyResolver {
     ): List<OrderRoot> {
         val maven = config.maven ?: return emptyList()
         if (maven.dependencies.isEmpty()) return emptyList()
-        val repositories = remoteRepositories(maven.repositories)
+        val builtins = SmithyVariableExpansion.builtins(project)
+        val repositories = remoteRepositories(maven.repositories, builtins)
         val roots = mutableListOf<OrderRoot>()
-        for (coordinate in maven.dependencies) {
+        for (rawCoordinate in maven.dependencies) {
+            val coordinate = try {
+                SmithyVariableExpansion.expand(rawCoordinate, builtins)
+            } catch (e: UnresolvedSmithyVariableException) {
+                LOG.warn("Skipping Smithy Maven dependency '$rawCoordinate': ${e.message}")
+                continue
+            }
             val descriptor = JpsMavenRepositoryLibraryDescriptor(coordinate, true, emptyList())
             val resolved = JarRepositoryManager.loadDependenciesSync(
                 project,
@@ -42,11 +56,21 @@ object SmithyDependencyResolver {
         return roots
     }
 
-    private fun remoteRepositories(declared: List<SmithyMavenRepository>): List<RemoteRepositoryDescription> {
+    private fun remoteRepositories(
+        declared: List<SmithyMavenRepository>,
+        builtins: Map<String, String>
+    ): List<RemoteRepositoryDescription> {
         if (declared.isEmpty()) return RemoteRepositoryDescription.DEFAULT_REPOSITORIES
-        return declared.mapIndexed { index, repo ->
-            val id = repo.id ?: "smithy-maven-$index"
-            RemoteRepositoryDescription(id, id, repo.url)
+        val expanded = mutableListOf<RemoteRepositoryDescription>()
+        declared.forEachIndexed { index, repo ->
+            try {
+                val url = SmithyVariableExpansion.expand(repo.url, builtins)
+                val id = repo.id?.let { SmithyVariableExpansion.expand(it, builtins) } ?: "smithy-maven-$index"
+                expanded += RemoteRepositoryDescription(id, id, url)
+            } catch (e: UnresolvedSmithyVariableException) {
+                LOG.warn("Skipping Smithy Maven repository '${repo.url}': ${e.message}")
+            }
         }
+        return expanded
     }
 }

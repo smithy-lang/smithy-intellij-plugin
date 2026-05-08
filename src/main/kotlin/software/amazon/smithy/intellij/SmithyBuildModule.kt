@@ -1,11 +1,13 @@
 package software.amazon.smithy.intellij
 
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.vfs.VirtualFile
+import software.amazon.smithy.intellij.SmithyVariableExpansion.UnresolvedSmithyVariableException
 import software.amazon.smithy.intellij.index.SmithyBuildConfigurationIndex
 import java.nio.file.Path
 
@@ -22,6 +24,7 @@ import java.nio.file.Path
  * to avoid the "module content roots must not overlap" constraint enforced by IntelliJ.
  */
 object SmithyBuildModule {
+    private val LOG = Logger.getInstance(SmithyBuildModule::class.java)
     const val MODULE_NAME = "smithy-build"
 
     fun find(project: Project): Module? = ModuleManager.getInstance(project).findModuleByName(MODULE_NAME)
@@ -52,15 +55,28 @@ object SmithyBuildModule {
 
     /**
      * Resolves each `sources` entry in [config] to a directory URL. Files have their parent
-     * directory used; relative paths are resolved against [buildFile]'s parent. Returns a
-     * de-duplicated list of source directories.
+     * directory used; relative paths are resolved against [buildFile]'s parent.
+     * `${VAR}` placeholders are expanded against system properties / environment variables;
+     * entries referencing an unset variable are skipped. Returns a de-duplicated list of
+     * source directories.
      */
-    fun resolveContentRoots(buildFile: VirtualFile, config: SmithyBuildConfiguration): List<VirtualFile> {
+    fun resolveContentRoots(
+        project: Project,
+        buildFile: VirtualFile,
+        config: SmithyBuildConfiguration
+    ): List<VirtualFile> {
         val baseDir = buildFile.parent ?: return emptyList()
+        val builtins = SmithyVariableExpansion.builtins(project)
         val seen = LinkedHashSet<String>()
         val result = mutableListOf<VirtualFile>()
         for (raw in config.sources) {
-            val normalized = raw.trim().removePrefix("./").trimStart('/')
+            val expanded = try {
+                SmithyVariableExpansion.expand(raw, builtins)
+            } catch (e: UnresolvedSmithyVariableException) {
+                LOG.warn("Skipping Smithy source '$raw': ${e.message}")
+                continue
+            }
+            val normalized = expanded.trim().removePrefix("./").trimStart('/')
             if (normalized.isEmpty()) continue
             val target = baseDir.findFileByRelativePath(normalized) ?: continue
             val rootDir = if (target.isDirectory) target else target.parent ?: continue

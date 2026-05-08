@@ -56,7 +56,7 @@ object SmithyDependencySynchronizer {
             return
         }
         val contentRoots = ReadAction.compute<List<VirtualFile>, RuntimeException> {
-            val all = SmithyBuildModule.resolveContentRoots(buildFile, config)
+            val all = SmithyBuildModule.resolveContentRoots(project, buildFile, config)
             val conflicts = SmithyBuildModule.conflictingContentRoots(project, all)
             all.filter { it.url !in conflicts }
         }
