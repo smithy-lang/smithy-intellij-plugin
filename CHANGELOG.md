@@ -2,6 +2,21 @@
 
 # Smithy IntelliJ Plugin Changelog
 
+## [Unreleased]
+
+### Added
+
+- Smithy CLI build system integration: a dedicated `smithy-build` module is now created from
+  `smithy-build.json`. Each entry under `sources` becomes a content root on this module (with a
+  source folder rooted at the resolved directory), and Maven dependencies declared under the
+  `maven` block are resolved and attached as a project library on the same module. This keeps
+  Smithy dependencies separate from the surrounding code's classpath. The sync runs on project
+  open, on edits to `smithy-build.json`, and via the new "Reimport Smithy Dependencies" action.
+
+### Changed
+
+- Bumped Gradle wrapper to 8.10.2 and the IntelliJ/grammarkit/changelog plugins to current 1.x lines.
+
 ## [2.0.19]
 
 ### Changed

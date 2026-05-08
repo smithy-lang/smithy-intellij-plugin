@@ -9,10 +9,12 @@ package software.amazon.smithy.intellij
 data class SmithyBuildConfiguration(
     val version: String,
     val outputDirectory: String? = null,
+    val sources: List<String> = emptyList(),
     val imports: List<String> = emptyList(),
     val projections: Map<String, SmithyProjection> = emptyMap(),
     val plugins: Map<String, Any?> = emptyMap(),
-    val ignoreMissingPlugins: Boolean = false
+    val ignoreMissingPlugins: Boolean = false,
+    val maven: SmithyMavenConfig? = null
 )
 
 data class SmithyProjection(
@@ -25,4 +27,17 @@ data class SmithyProjection(
 data class SmithyTransform(
     val name: String,
     val args: Map<String, Any?> = emptyMap(),
+)
+
+data class SmithyMavenConfig(
+    val dependencies: List<String> = emptyList(),
+    val repositories: List<SmithyMavenRepository> = emptyList()
+)
+
+data class SmithyMavenRepository(
+    val url: String,
+    val id: String? = null,
+    val httpCredentials: String? = null,
+    val proxyHost: String? = null,
+    val proxyCredentials: String? = null
 )
