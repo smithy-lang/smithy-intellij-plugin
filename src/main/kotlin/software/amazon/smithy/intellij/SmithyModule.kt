@@ -105,8 +105,14 @@ object SmithyModule {
         ModuleManager.getInstance(project).findModuleByName(SMITHY_BUILD_MODULE_NAME)
 
     fun smithyBuildImlPath(project: Project): Path? {
-        val baseDir = project.guessProjectDir()?.toNioPath() ?: return null
-        return baseDir.resolve(".idea").resolve("modules").resolve("$SMITHY_BUILD_MODULE_NAME.iml")
+        val baseDir = project.guessProjectDir() ?: return null
+        val nioPath = try {
+            baseDir.toNioPath()
+        } catch (_: UnsupportedOperationException) {
+            // Some virtual filesystems (in-memory test fixtures, jar://) don't map to nio.
+            return null
+        }
+        return nioPath.resolve(".idea").resolve("modules").resolve("$SMITHY_BUILD_MODULE_NAME.iml")
     }
 
     /**

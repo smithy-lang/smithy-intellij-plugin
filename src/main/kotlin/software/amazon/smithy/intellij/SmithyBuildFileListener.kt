@@ -1,5 +1,6 @@
 package software.amazon.smithy.intellij
 
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.vfs.AsyncFileListener
@@ -44,6 +45,11 @@ class SmithyBuildFileListener : AsyncFileListener {
 
     private fun scheduleSync(project: Project) {
         if (project.isDisposed) return
-        SmithyDependencySynchronizer.syncProjectInBackground(project)
+        // Don't kick off the sync from inside VFS event dispatch — the synchronizer needs to
+        // read a project-level file index, which is forbidden in that context. Defer it.
+        ApplicationManager.getApplication().invokeLater(
+            { if (!project.isDisposed) SmithyDependencySynchronizer.syncProjectInBackground(project) },
+            project.disposed
+        )
     }
 }
