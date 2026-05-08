@@ -22,6 +22,7 @@
     <a href="https://awslabs.github.io/smithy/">Homepage</a><span> | </span><a href="https://github.com/iancaffey/smithy-intellij-plugin">GitHub</a>
     ]]></description>
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
     <actions>
         <action id="software.amazon.smithy.intellij.actions.SmithyCreateFileAction"
                 class="software.amazon.smithy.intellij.actions.SmithyCreateFileAction"
@@ -29,6 +30,10 @@
                 description="Creates a new Smithy file">
             <add-to-group group-id="NewGroup" anchor="first"/>
         </action>
+        <action id="software.amazon.smithy.intellij.actions.SmithyReimportDependenciesAction"
+                class="software.amazon.smithy.intellij.actions.SmithyReimportDependenciesAction"
+                text="Reimport Smithy Dependencies"
+                description="Resolves Maven dependencies declared in smithy-build.json and attaches them to Smithy modules"/>
     </actions>
     <extensions defaultExtensionNs="com.intellij">
         <fileType name="Smithy"
@@ -102,5 +107,10 @@
         <navbar implementation="software.amazon.smithy.intellij.SmithyNavBar"/>
         <spellchecker.support language="Smithy"
                               implementationClass="software.amazon.smithy.intellij.SmithySpellcheckingStrategy"/>
+        <postStartupActivity implementation="software.amazon.smithy.intellij.SmithyStartupActivity"/>
+        <vfs.asyncListener implementation="software.amazon.smithy.intellij.SmithyBuildFileListener"/>
+        <notificationGroup id="Smithy" displayType="BALLOON"/>
+        <editorNotificationProvider
+                implementation="software.amazon.smithy.intellij.SmithyUnresolvedDependenciesNotificationProvider"/>
     </extensions>
 </idea-plugin>
