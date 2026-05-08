@@ -29,7 +29,7 @@ class SmithyUnresolvedDependenciesNotificationProvider : EditorNotifications.Pro
     ): EditorNotificationPanel? {
         if (file.name != "smithy-build.json") return null
         if (DumbService.isDumb(project)) return null
-        val config = SmithyBuildModule.loadConfig(project, file) ?: return null
+        val config = SmithyModule.loadBuildConfig(project, file) ?: return null
         val maven = config.maven ?: return null
         if (maven.dependencies.isEmpty()) return null
         val library = LibraryTablesRegistrar.getInstance()

@@ -46,8 +46,8 @@ object SmithyDependencySynchronizer {
         if (project.isDisposed) return
         data class Snapshot(val buildFile: VirtualFile?, val config: SmithyBuildConfiguration?)
         val snapshot = ReadAction.compute<Snapshot, RuntimeException> {
-            val file = SmithyBuildModule.findBuildFile(project) ?: return@compute Snapshot(null, null)
-            Snapshot(file, SmithyBuildModule.loadConfig(project, file))
+            val file = SmithyModule.findProjectBuildFile(project) ?: return@compute Snapshot(null, null)
+            Snapshot(file, SmithyModule.loadBuildConfig(project, file))
         }
         val buildFile = snapshot.buildFile
         val config = snapshot.config
@@ -56,8 +56,8 @@ object SmithyDependencySynchronizer {
             return
         }
         val contentRoots = ReadAction.compute<List<VirtualFile>, RuntimeException> {
-            val all = SmithyBuildModule.resolveContentRoots(project, buildFile, config)
-            val conflicts = SmithyBuildModule.conflictingContentRoots(project, all)
+            val all = SmithyModule.resolveContentRoots(project, buildFile, config)
+            val conflicts = SmithyModule.conflictingContentRoots(project, all)
             all.filter { it.url !in conflicts }
         }
         // Resolve Maven dependencies (off the EDT, may take a while).
@@ -97,8 +97,8 @@ object SmithyDependencySynchronizer {
     }
 
     private fun ensureModule(project: Project): Module? {
-        SmithyBuildModule.find(project)?.let { return it }
-        val imlPath = SmithyBuildModule.imlPath(project) ?: return null
+        SmithyModule.findSmithyBuildModule(project)?.let { return it }
+        val imlPath = SmithyModule.smithyBuildImlPath(project) ?: return null
         com.intellij.openapi.util.io.FileUtil.ensureExists(imlPath.parent.toFile())
         val moduleModel = ModuleManager.getInstance(project).modifiableModel
         return try {
@@ -181,7 +181,7 @@ object SmithyDependencySynchronizer {
             ApplicationManager.getApplication().runWriteAction {
                 if (project.isDisposed) return@runWriteAction
                 val moduleModel = ModuleManager.getInstance(project).modifiableModel
-                val module = moduleModel.findModuleByName(SmithyBuildModule.MODULE_NAME)
+                val module = moduleModel.findModuleByName(SmithyModule.SMITHY_BUILD_MODULE_NAME)
                 if (module != null) {
                     moduleModel.disposeModule(module)
                     moduleModel.commit()
