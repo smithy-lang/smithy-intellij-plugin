@@ -41,5 +41,6 @@ structure MyCoolShape {
           PsiElement(:)(':')(62,63)
           String(64,70)
             String(64,70)
-              PsiElement(TOKEN_SYMBOL)('String')(64,70)
+              String(64,70)
+                PsiElement(TOKEN_SYMBOL)('String')(64,70)
         PsiElement(})('}')(71,72)

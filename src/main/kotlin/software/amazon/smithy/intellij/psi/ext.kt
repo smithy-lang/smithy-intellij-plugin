@@ -104,7 +104,7 @@ abstract class SmithyBooleanMixin(node: ASTNode) : SmithyPrimitiveImpl(node), Sm
 
 interface SmithyContainerMemberExt : SmithyNamedElement, SmithyMemberDefinition {
     override val enclosingShape: SmithyShape
-    override val declaredTarget: SmithyShapeId
+    override val declaredTarget: SmithyShapeTarget?
     override val declaredTraits: List<SmithyTrait>
 }
 
@@ -123,6 +123,11 @@ abstract class SmithyContainerMemberMixin(node: ASTNode) : SmithyPsiElement(node
                     )
             }
             initializer?.value?.let { default -> it += SmithySyntheticTrait(this, "smithy.api", "default", default) }
+            memberIndex?.index?.let { idx ->
+                it += SmithySyntheticTrait(
+                    this, "smithy.protocols", "idx", SmithySyntheticValue.Number(idx.toBigDecimal())
+                )
+            }
             _syntheticTraits = it
         }
 
@@ -188,6 +193,11 @@ abstract class SmithyElidedMemberMixin(node: ASTNode) : SmithyPsiElement(node), 
                 )
             }
             initializer?.value?.let { default -> it += SmithySyntheticTrait(this, "smithy.api", "default", default) }
+            memberIndex?.index?.let { idx ->
+                it += SmithySyntheticTrait(
+                    this, "smithy.protocols", "idx", SmithySyntheticValue.Number(idx.toBigDecimal())
+                )
+            }
             _syntheticTraits = it
         }
 
@@ -410,6 +420,19 @@ interface SmithyMemberInitializerExt : SmithyElement {
 
 abstract class SmithyMemberInitializerMixin(node: ASTNode) : SmithyPsiElement(node), SmithyMemberInitializer {
     override val enclosingMember: SmithyMemberDefinition get() = parent as SmithyMemberDefinition
+}
+
+interface SmithyMemberIndexExt : SmithyElement {
+    val enclosingMember: SmithyMemberDefinition
+    val index: Int?
+}
+
+abstract class SmithyMemberIndexMixin(node: ASTNode) : SmithyPsiElement(node), SmithyMemberIndex {
+    override val enclosingMember: SmithyMemberDefinition get() = parent as SmithyMemberDefinition
+    //Note: the token is a positive integer followed by a period (e.g. "1."), so the trailing period is dropped.
+    //The value may exceed Int range for pathological inputs; those are left for the assembler to reject, so parsing
+    //returns null rather than throwing.
+    override val index: Int? get() = text.removeSuffix(".").toIntOrNull()
 }
 
 interface SmithyMetadataExt : SmithyStatement
@@ -802,6 +825,62 @@ abstract class SmithyShapeIdMixin(node: ASTNode) : SmithyPrimitiveImpl(node), Sm
     override fun resolve() = reference.resolve()
 }
 
+interface SmithyMemberTargetExt : SmithyShapeTarget {
+    /** The underlying target: a [SmithyShapeId], [SmithyInlineListTarget], or [SmithyInlineMapTarget]. */
+    val target: SmithyShapeTarget?
+}
+
+abstract class SmithyMemberTargetMixin(node: ASTNode) : SmithyPsiElement(node), SmithyMemberTarget {
+    override val target: SmithyShapeTarget? get() = shapeId ?: inlineListTarget ?: inlineMapTarget
+    override val shapeName: String get() = target?.shapeName ?: text
+    override val declaredNamespace: String? get() = target?.declaredNamespace
+    override val resolvedNamespace: String? get() = target?.resolvedNamespace
+    override fun resolve(): SmithyShapeDefinition? = target?.resolve()
+}
+
+interface SmithyInlineListTargetExt : SmithyShapeTarget {
+    val element: SmithyShapeTarget?
+}abstract class SmithyInlineListTargetMixin(node: ASTNode) : SmithyPsiElement(node), SmithyInlineListTarget {
+    private val enclosingNamespace get() = (containingFile as? SmithyFile)?.model?.namespace
+    override val declaredNamespace get() = enclosingNamespace
+    override val resolvedNamespace get() = enclosingNamespace
+    override val shapeName: String
+        get() {
+            val target = element
+            val token = SmithyInlineTargets.token(
+                enclosingNamespace, target?.resolve()?.namespace ?: target?.resolvedNamespace,
+                target?.shapeName ?: "Unknown"
+            )
+            return SmithyInlineTargets.listName(token)
+        }
+    override fun resolve(): SmithyShapeDefinition? =
+        enclosingNamespace?.let { SmithySyntheticShape(this, it, shapeName, "list") }
+}
+
+interface SmithyInlineMapTargetExt : SmithyShapeTarget {
+    val key: SmithyShapeTarget?
+    val value: SmithyShapeTarget?
+}
+
+abstract class SmithyInlineMapTargetMixin(node: ASTNode) : SmithyPsiElement(node), SmithyInlineMapTarget {
+    private val enclosingNamespace get() = (containingFile as? SmithyFile)?.model?.namespace
+    override val declaredNamespace get() = enclosingNamespace
+    override val resolvedNamespace get() = enclosingNamespace
+    override val shapeName: String
+        get() {
+            val keyToken = SmithyInlineTargets.token(
+                enclosingNamespace, key?.resolve()?.namespace ?: key?.resolvedNamespace, key?.shapeName ?: "Unknown"
+            )
+            val valueToken = SmithyInlineTargets.token(
+                enclosingNamespace, value?.resolve()?.namespace ?: value?.resolvedNamespace,
+                value?.shapeName ?: "Unknown"
+            )
+            return SmithyInlineTargets.mapName(keyToken, valueToken)
+        }
+    override fun resolve(): SmithyShapeDefinition? =
+        enclosingNamespace?.let { SmithySyntheticShape(this, it, shapeName, "map") }
+}
+
 private fun parseInnerText(text: String, start: Int = 0, end: Int = text.length - start): String? = buildString {
     var i = start
     val lastIndex = end.takeIf { it >= i } ?: return null
@@ -897,6 +976,32 @@ abstract class SmithyTextBlockMixin(node: ASTNode) : SmithyPrimitiveImpl(node), 
 
     override fun subtreeChanged() {
         parsed = false
+    }
+}
+
+interface SmithyTaggedStringExt : SmithyCharSequence {
+    /** The tag name (without the leading `#` or trailing whitespace), e.g. `re`, `b`, `hex`, `timestamp`. */
+    val tag: String
+}
+
+abstract class SmithyTaggedStringMixin(node: ASTNode) : SmithyPrimitiveImpl(node), SmithyTaggedString {
+    override val tag: String get() = firstChild.text.removePrefix("#").trim()
+
+    //Highlighting only: a tagged literal uses tag-specific escape/encoding rules (e.g. #re takes backslashes
+    //literally, #b/#hex decode bytes), so the standard string escape processing in SmithyString/SmithyTextBlock must
+    //NOT be applied to its content - doing so would mangle or null out the value (e.g. "\d" is not a valid plain-string
+    //escape). We do not decode; asString() returns the raw inner text verbatim, which is the correct value for #re and
+    //a safe, non-mangling best effort for the others.
+    override fun asString(): String? {
+        val raw = (content as? PsiElement)?.text ?: return null
+        return when {
+            raw.startsWith("\"\"\"") && raw.endsWith("\"\"\"") && raw.length >= 6 -> {
+                //Text block: drop the opening """ (and the required leading newline) and the closing """.
+                raw.substring(3, raw.length - 3).removePrefix("\r\n").removePrefix("\n")
+            }
+            raw.startsWith("\"") && raw.endsWith("\"") && raw.length >= 2 -> raw.substring(1, raw.length - 1)
+            else -> raw
+        }
     }
 }
 

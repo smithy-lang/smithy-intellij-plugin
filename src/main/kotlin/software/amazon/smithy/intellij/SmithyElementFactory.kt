@@ -6,8 +6,15 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiTreeUtil.getChildOfType
 import software.amazon.smithy.intellij.SmithyModule.defaultNamespace
 import software.amazon.smithy.intellij.psi.SmithyElement
+import software.amazon.smithy.intellij.psi.SmithyControl
+import software.amazon.smithy.intellij.psi.SmithyContainerMember
 import software.amazon.smithy.intellij.psi.SmithyImport
+import software.amazon.smithy.intellij.psi.SmithyMemberTarget
+import software.amazon.smithy.intellij.psi.SmithyMemberIndex
 import software.amazon.smithy.intellij.psi.SmithyNamespace
+import software.amazon.smithy.intellij.psi.SmithyShape
+import software.amazon.smithy.intellij.psi.SmithyStructure
+import software.amazon.smithy.intellij.psi.SmithyTaggedString
 
 /**
  * A utility class providing methods to create [SmithyElement].
@@ -59,6 +66,35 @@ object SmithyElementFactory {
 
     fun createShapeId(project: Project, namespace: String?, shapeName: String) =
         createImport(project, namespace, shapeName).shapeId
+
+    fun createControl(project: Project, key: String, value: String): SmithyControl {
+        val file = createFile(project, "\$$key: $value")
+        return file.model!!.control.first()
+    }
+
+    fun createTaggedString(project: Project, tag: String, content: String): SmithyTaggedString {
+        val file = createFile(project, "metadata tmp = #$tag \"$content\"")
+        return file.model!!.metadata.first().value as SmithyTaggedString
+    }
+
+    fun createMemberTarget(project: Project, targetText: String): SmithyMemberTarget {
+        val file = createFile(project, "namespace tmp\n\nstructure Tmp {\n    m: $targetText\n}")
+        val structure = file.model!!.shapes.first() as SmithyStructure
+        val member = structure.body.members.first() as SmithyContainerMember
+        return PsiTreeUtil.getChildOfType(member, SmithyMemberTarget::class.java)!!
+    }
+
+    fun createMemberIndex(project: Project, index: Int): SmithyMemberIndex {
+        val file = createFile(project, "namespace tmp\n\nstructure Tmp {\n    $index. m: Unit\n}")
+        val structure = file.model!!.shapes.first() as SmithyStructure
+        val member = structure.body.members.first() as SmithyContainerMember
+        return PsiTreeUtil.getChildOfType(member, SmithyMemberIndex::class.java)!!
+    }
+
+    fun createShape(project: Project, shapeDeclaration: String): SmithyShape {
+        val file = createFile(project, "namespace tmp\n\n$shapeDeclaration")
+        return file.model!!.shapes.first()
+    }
 
     fun createFile(project: Project, content: String) =
         PsiFileFactory.getInstance(project).createFileFromText("tmp.smithy", SmithyFileType, content) as SmithyFile

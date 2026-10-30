@@ -45,6 +45,8 @@ dependencies {
     implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.17.1'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'software.amazon.smithy:smithy-model:1.49.0'
+    //Required by the IntelliJ platform test harness (BasePlatformTestCase) at runtime
+    testRuntimeOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 }
 
 intellij {

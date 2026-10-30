@@ -26,6 +26,8 @@
         TOKEN_DOLLAR_SIGN="$"
         TOKEN_AT="@"
         TOKEN_HASH="#"
+        //Tagged string literal prefix (IDL 2.1), e.g. #re / #b / #hex / #timestamp
+        TOKEN_TAG="regexp:#(re|b|hex|timestamp)[ \t]*"
         //Symbols (keywords (not reserved words), identifiers, object keys, etc.)
         TOKEN_APPLY="apply"
         TOKEN_USE="use"
@@ -62,6 +64,8 @@
         TOKEN_BOOLEAN="regexp:true|false"
         TOKEN_SIMPLE_TYPE_NAME="regexp:blob|boolean|document|string|byte|short|integer|long|float|double|bigInteger|bigDecimal|timestamp"
         TOKEN_SYMBOL="regexp:((_+[A-Za-z0-9])|[A-Za-z])[A-Za-z0-9_]*"
+        //Member index shorthand (IDL 2.1): a positive integer followed by a period, e.g. "1."
+        TOKEN_MEMBER_INDEX="regexp:[1-9][0-9]*\."
         //Literals
         TOKEN_NUMBER="regexp:-?(0|([1-9][0-9]*))(\.[0-9]+)?(e[+-]?[0-9]+)?"
         //Note: both string and text_block regex here permit invalid escape sequences to later on annotate them as errors
@@ -78,7 +82,7 @@
     implements("^(?!.*element).*")="software.amazon.smithy.intellij.psi.SmithyElement"
     implements("array|object|container_body|enum_body|int_enum_body|mixins|operation_body|operation_errors|resource_body|resource_identifiers|resource_properties|resource_operations|resource_collection_operations|resource_resources|service_body|service_operations|service_resources|service_errors|service_renames|applied_trait_body|trait_body")="software.amazon.smithy.intellij.psi.SmithyContainer"
     extends("array|object|primitive")=value
-    extends("null|boolean|number|string|text_block|shape_id|member_id")=primitive
+    extends("null|boolean|number|string|text_block|tagged_string|shape_id|member_id")=primitive
     extends("symbol|null|boolean|simple_type_name")=id
     extends("container_shape|simple_shape|enum|int_enum|service|operation|resource")=shape
     extends("operation_input|operation_output|operation_errors")=operation_property
@@ -280,15 +284,37 @@ container_body ::= TOKEN_OPEN_BRACE ((container_member | elided_member | incompl
     implements="software.amazon.smithy.intellij.psi.SmithyMemberBodyExt"
     mixin="software.amazon.smithy.intellij.psi.SmithyMemberBodyMixin"
 }
-container_member ::= [documentation] trait* member_name TOKEN_COLON shape_id [member_initializer] {
-    methods=[declared_traits="trait" name_identifier="member_name" declared_target="shape_id" initializer="member_initializer"]
+container_member ::= [documentation] trait* [member_index] member_name TOKEN_COLON member_target [member_initializer] {
+    methods=[declared_traits="trait" name_identifier="member_name" declared_target="member_target" initializer="member_initializer" memberIndex="member_index"]
     implements="software.amazon.smithy.intellij.psi.SmithyContainerMemberExt"
     mixin="software.amazon.smithy.intellij.psi.SmithyContainerMemberMixin"
 }
-elided_member ::= [documentation] trait* TOKEN_DOLLAR_SIGN member_name [member_initializer] {
-    methods=[declared_traits="trait" name_identifier="member_name" initializer="member_initializer"]
+elided_member ::= [documentation] trait* [member_index] TOKEN_DOLLAR_SIGN member_name [member_initializer] {
+    methods=[declared_traits="trait" name_identifier="member_name" initializer="member_initializer" memberIndex="member_index"]
     implements="software.amazon.smithy.intellij.psi.SmithyElidedMemberExt"
     mixin="software.amazon.smithy.intellij.psi.SmithyElidedMemberMixin"
+}
+//Member index shorthand (IDL 2.1): "N." before a member, equivalent to applying @smithy.protocols#idx(N)
+member_index ::= TOKEN_MEMBER_INDEX {
+    implements="software.amazon.smithy.intellij.psi.SmithyMemberIndexExt"
+    mixin="software.amazon.smithy.intellij.psi.SmithyMemberIndexMixin"
+}
+//Member target (IDL 2.1): either a shape id or an inline collection declaration.
+member_target ::= shape_id | inline_list_target | inline_map_target {
+    methods=[shapeId="shape_id" inlineListTarget="inline_list_target" inlineMapTarget="inline_map_target"]
+    implements="software.amazon.smithy.intellij.psi.SmithyMemberTargetExt"
+    mixin="software.amazon.smithy.intellij.psi.SmithyMemberTargetMixin"
+}
+//Inline collection declarations (IDL 2.1): [Target] desugars to a synthetic list, {Key: Value} to a synthetic map.
+inline_list_target ::= TOKEN_OPEN_BRACKET member_target TOKEN_CLOSE_BRACKET {
+    methods=[element="member_target"]
+    implements="software.amazon.smithy.intellij.psi.SmithyInlineListTargetExt"
+    mixin="software.amazon.smithy.intellij.psi.SmithyInlineListTargetMixin"
+}
+inline_map_target ::= TOKEN_OPEN_BRACE member_target TOKEN_COLON member_target TOKEN_CLOSE_BRACE {
+    methods=[key="member_target[0]" value="member_target[1]"]
+    implements="software.amazon.smithy.intellij.psi.SmithyInlineMapTargetExt"
+    mixin="software.amazon.smithy.intellij.psi.SmithyInlineMapTargetMixin"
 }
 member_initializer ::= TOKEN_EQUALS value {
     implements="software.amazon.smithy.intellij.psi.SmithyMemberInitializerExt"
@@ -344,7 +370,7 @@ object ::= TOKEN_OPEN_BRACE ((entry | incomplete_entry) [TOKEN_COMMA])* TOKEN_CL
     implements="software.amazon.smithy.intellij.psi.SmithyObjectExt"
     mixin="software.amazon.smithy.intellij.psi.SmithyObjectMixin"
 }
-primitive ::= null | boolean | number | string | text_block | member_id | shape_id
+primitive ::= null | boolean | number | string | text_block | tagged_string | member_id | shape_id
 
 //Shape ID
 shape_id ::= [namespace_id TOKEN_HASH] id {
@@ -409,6 +435,13 @@ text_block ::= TOKEN_TEXT_BLOCK {
     methods=[TOKEN_TEXT_BLOCK=""]
     implements="software.amazon.smithy.intellij.psi.SmithyTextBlockExt"
     mixin="software.amazon.smithy.intellij.psi.SmithyTextBlockMixin"
+}
+//Tagged string literal (IDL 2.1): a #tag prefix followed by a string or text block, e.g. #re "^\d+$".
+//This is purely syntactic sugar; for the plugin it is treated as a string value (highlighting only, no decoding).
+tagged_string ::= TOKEN_TAG (string | text_block) {
+    methods=[content="primitive"]
+    implements="software.amazon.smithy.intellij.psi.SmithyTaggedStringExt"
+    mixin="software.amazon.smithy.intellij.psi.SmithyTaggedStringMixin"
 }
 symbol ::= TOKEN_SYMBOL {methods=[TOKEN_SYMBOL=""]}
 simple_type_name ::= TOKEN_SIMPLE_TYPE_NAME {methods=[TOKEN_SIMPLE_TYPE_NAME=""]}

@@ -30,6 +30,7 @@ class SmithySyntaxHighlighter : SyntaxHighlighterBase() {
         //Note: these can only match against tokens, SmithySyntaxAnnotator supports the contextual syntax highlighting with the higher-level AST nodes
         private val TOKEN_HIGHLIGHTS = mapOf(
             SmithyTypes.TOKEN_NUMBER to arrayOf(SmithyColorSettings.NUMBER),
+            SmithyTypes.TOKEN_MEMBER_INDEX to arrayOf(SmithyColorSettings.NUMBER),
             SmithyTypes.TOKEN_STRING to arrayOf(SmithyColorSettings.STRING),
             SmithyTypes.TOKEN_TEXT_BLOCK to arrayOf(SmithyColorSettings.STRING),
             SmithyTypes.TOKEN_INCOMPLETE_STRING to arrayOf(SmithyColorSettings.STRING),
@@ -43,7 +44,8 @@ class SmithySyntaxHighlighter : SyntaxHighlighterBase() {
             SmithyTypes.TOKEN_OPEN_PAREN to arrayOf(SmithyColorSettings.PARENS),
             SmithyTypes.TOKEN_CLOSE_PAREN to arrayOf(SmithyColorSettings.PARENS),
             SmithyTypes.TOKEN_COMMA to arrayOf(SmithyColorSettings.COMMA),
-            SmithyTypes.TOKEN_PERIOD to arrayOf(SmithyColorSettings.DOT)
+            SmithyTypes.TOKEN_PERIOD to arrayOf(SmithyColorSettings.DOT),
+            SmithyTypes.TOKEN_TAG to arrayOf(SmithyColorSettings.TAG)
         )
     }
 

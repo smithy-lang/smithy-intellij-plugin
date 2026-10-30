@@ -58,6 +58,10 @@
         <lang.syntaxHighlighterFactory language="Smithy"
                                        implementationClass="software.amazon.smithy.intellij.SmithySyntaxHighlighterFactory"/>
         <annotator language="Smithy" implementationClass="software.amazon.smithy.intellij.SmithyAnnotator"/>
+        <intentionAction>
+            <className>software.amazon.smithy.intellij.actions.SmithyExtractInlineCollectionIntention</className>
+            <category>Smithy</category>
+        </intentionAction>
         <codeInsight.lineMarkerProvider language="Smithy"
                                         implementationClass="software.amazon.smithy.intellij.insights.SmithyAppliedTraitLineMarkerProvider"/>
         <codeInsight.lineMarkerProvider language="Smithy"

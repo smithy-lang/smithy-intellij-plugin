@@ -30,6 +30,7 @@ import software.amazon.smithy.intellij.psi.SmithySyntheticElement
 import software.amazon.smithy.intellij.psi.SmithySyntheticMember
 import software.amazon.smithy.intellij.psi.SmithySyntheticShapeTarget
 import software.amazon.smithy.intellij.psi.SmithyTrait
+import software.amazon.smithy.intellij.psi.SmithyTaggedString
 import software.amazon.smithy.intellij.psi.SmithyTraitBody
 import software.amazon.smithy.intellij.psi.SmithyValue
 
@@ -218,7 +219,9 @@ private data class ByValue(val value: SmithyValue) : SmithyShapeReference(value,
         }
     }
 
-    override fun isSoft() = value.parent.let { it is SmithyKey || it is SmithyControl || it is SmithyMetadata }
+    //Note: a tagged string literal's content (IDL 2.1, e.g. #re "...") is literal text, not a shape reference.
+    override fun isSoft() =
+        value.parent.let { it is SmithyKey || it is SmithyControl || it is SmithyMetadata || it is SmithyTaggedString }
             || getParentOfType(value, SmithyTrait::class.java) == null
 
     override fun getAbsoluteRange(): TextRange = myElement.textRange

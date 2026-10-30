@@ -1,0 +1,125 @@
+Smithy File(0,238)
+  $version: "2.1"
+
+namespace example
+
+use foo.bar#region
+
+@pattern(#re "^\d{5}$")
+string Zip
+
+@pattern(#re """
+    ^\d{5}(-\d{4})?$
+    """)
+string ZipExtended
+
+@example(#hex "48 65 6c 6c 6f")
+blob Data
+
+structure WithTag {
+    id: region
+}(0,238)
+    version(0,15)
+      PsiElement($)('$')(0,1)
+      version(1,8)
+        version(1,8)
+          PsiElement(version)('version')(1,8)
+      PsiElement(:)(':')(8,9)
+      "2.1"(10,15)
+        PsiElement(TOKEN_STRING)('"2.1"')(10,15)
+    namespace example(17,34)
+      PsiElement(namespace)('namespace')(17,26)
+      example(27,34)
+        example(27,34)
+          PsiElement(TOKEN_SYMBOL)('example')(27,34)
+    use foo.bar#region(36,54)
+      PsiElement(use)('use')(36,39)
+      region(40,54)
+        foo.bar(40,47)
+          foo(40,43)
+            PsiElement(TOKEN_SYMBOL)('foo')(40,43)
+          PsiElement(.)('.')(43,44)
+          bar(44,47)
+            PsiElement(TOKEN_SYMBOL)('bar')(44,47)
+        PsiElement(#)('#')(47,48)
+        region(48,54)
+          PsiElement(TOKEN_SYMBOL)('region')(48,54)
+    Zip(56,90)
+      pattern(56,79)
+        PsiElement(@)('@')(56,57)
+        pattern(57,64)
+          pattern(57,64)
+            PsiElement(TOKEN_SYMBOL)('pattern')(57,64)
+        (#re "^\d{5}$")(64,79)
+          PsiElement(()('(')(64,65)
+          #re "^\d{5}$"(65,78)
+            PsiElement(TOKEN_TAG)('#re ')(65,69)
+            "^\d{5}$"(69,78)
+              PsiElement(TOKEN_STRING)('"^\d{5}$"')(69,78)
+          PsiElement())(')')(78,79)
+      string(80,86)
+        PsiElement(TOKEN_SIMPLE_TYPE_NAME)('string')(80,86)
+      Zip(87,90)
+        Zip(87,90)
+          PsiElement(TOKEN_SYMBOL)('Zip')(87,90)
+    ZipExtended(92,157)
+      pattern(92,138)
+        PsiElement(@)('@')(92,93)
+        pattern(93,100)
+          pattern(93,100)
+            PsiElement(TOKEN_SYMBOL)('pattern')(93,100)
+        (#re """
+    ^\d{5}(-\d{4})?$
+    """)(100,138)
+          PsiElement(()('(')(100,101)
+          #re """
+    ^\d{5}(-\d{4})?$
+    """(101,137)
+            PsiElement(TOKEN_TAG)('#re ')(101,105)
+            """
+    ^\d{5}(-\d{4})?$
+    """(105,137)
+              PsiElement(TOKEN_TEXT_BLOCK)('"""\n    ^\d{5}(-\d{4})?$\n    """')(105,137)
+          PsiElement())(')')(137,138)
+      string(139,145)
+        PsiElement(TOKEN_SIMPLE_TYPE_NAME)('string')(139,145)
+      ZipExtended(146,157)
+        ZipExtended(146,157)
+          PsiElement(TOKEN_SYMBOL)('ZipExtended')(146,157)
+    Data(159,200)
+      example(159,190)
+        PsiElement(@)('@')(159,160)
+        example(160,167)
+          example(160,167)
+            PsiElement(TOKEN_SYMBOL)('example')(160,167)
+        (#hex "48 65 6c 6c 6f")(167,190)
+          PsiElement(()('(')(167,168)
+          #hex "48 65 6c 6c 6f"(168,189)
+            PsiElement(TOKEN_TAG)('#hex ')(168,173)
+            "48 65 6c 6c 6f"(173,189)
+              PsiElement(TOKEN_STRING)('"48 65 6c 6c 6f"')(173,189)
+          PsiElement())(')')(189,190)
+      blob(191,195)
+        PsiElement(TOKEN_SIMPLE_TYPE_NAME)('blob')(191,195)
+      Data(196,200)
+        Data(196,200)
+          PsiElement(TOKEN_SYMBOL)('Data')(196,200)
+    WithTag(202,238)
+      PsiElement(structure)('structure')(202,211)
+      WithTag(212,219)
+        WithTag(212,219)
+          PsiElement(TOKEN_SYMBOL)('WithTag')(212,219)
+      {
+    id: region
+}(220,238)
+        PsiElement({)('{')(220,221)
+        id(226,236)
+          id(226,228)
+            id(226,228)
+              PsiElement(TOKEN_SYMBOL)('id')(226,228)
+          PsiElement(:)(':')(228,229)
+          region(230,236)
+            region(230,236)
+              region(230,236)
+                PsiElement(TOKEN_SYMBOL)('region')(230,236)
+        PsiElement(})('}')(237,238)

@@ -40,5 +40,14 @@ class SmithyParserTest : ParsingTestCase("parsing", "smithy", SmithyParserDefini
     fun testSimple() = doTest(true)
 
     @Test
+    fun testMemberIndex() = doTest(true)
+
+    @Test
+    fun testTaggedLiterals() = doTest(true)
+
+    @Test
+    fun testInlineCollections() = doTest(true)
+
+    @Test
     fun testWeather() = doTest(true)
 }

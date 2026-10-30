@@ -1,0 +1,108 @@
+Smithy File(0,184)
+  $version: "2.1"
+
+namespace example
+
+structure Record {
+    1. id: String
+    2. value: String
+}
+
+structure WithElided with [Record] {
+    1. $id
+}
+
+list Names {
+    1. member: String
+}(0,184)
+    version(0,15)
+      PsiElement($)('$')(0,1)
+      version(1,8)
+        version(1,8)
+          PsiElement(version)('version')(1,8)
+      PsiElement(:)(':')(8,9)
+      "2.1"(10,15)
+        PsiElement(TOKEN_STRING)('"2.1"')(10,15)
+    namespace example(17,34)
+      PsiElement(namespace)('namespace')(17,26)
+      example(27,34)
+        example(27,34)
+          PsiElement(TOKEN_SYMBOL)('example')(27,34)
+    Record(36,95)
+      PsiElement(structure)('structure')(36,45)
+      Record(46,52)
+        Record(46,52)
+          PsiElement(TOKEN_SYMBOL)('Record')(46,52)
+      {
+    1. id: String
+    2. value: String
+}(53,95)
+        PsiElement({)('{')(53,54)
+        id(59,72)
+          1.(59,61)
+            PsiElement(TOKEN_MEMBER_INDEX)('1.')(59,61)
+          id(62,64)
+            id(62,64)
+              PsiElement(TOKEN_SYMBOL)('id')(62,64)
+          PsiElement(:)(':')(64,65)
+          String(66,72)
+            String(66,72)
+              String(66,72)
+                PsiElement(TOKEN_SYMBOL)('String')(66,72)
+        value(77,93)
+          2.(77,79)
+            PsiElement(TOKEN_MEMBER_INDEX)('2.')(77,79)
+          value(80,85)
+            value(80,85)
+              PsiElement(TOKEN_SYMBOL)('value')(80,85)
+          PsiElement(:)(':')(85,86)
+          String(87,93)
+            String(87,93)
+              String(87,93)
+                PsiElement(TOKEN_SYMBOL)('String')(87,93)
+        PsiElement(})('}')(94,95)
+    WithElided(97,146)
+      PsiElement(structure)('structure')(97,106)
+      WithElided(107,117)
+        WithElided(107,117)
+          PsiElement(TOKEN_SYMBOL)('WithElided')(107,117)
+      with [Record](118,131)
+        PsiElement(with)('with')(118,122)
+        PsiElement([)('[')(123,124)
+        Record(124,130)
+          Record(124,130)
+            PsiElement(TOKEN_SYMBOL)('Record')(124,130)
+        PsiElement(])(']')(130,131)
+      {
+    1. $id
+}(132,146)
+        PsiElement({)('{')(132,133)
+        id(138,144)
+          1.(138,140)
+            PsiElement(TOKEN_MEMBER_INDEX)('1.')(138,140)
+          PsiElement($)('$')(141,142)
+          id(142,144)
+            id(142,144)
+              PsiElement(TOKEN_SYMBOL)('id')(142,144)
+        PsiElement(})('}')(145,146)
+    Names(148,184)
+      PsiElement(list)('list')(148,152)
+      Names(153,158)
+        Names(153,158)
+          PsiElement(TOKEN_SYMBOL)('Names')(153,158)
+      {
+    1. member: String
+}(159,184)
+        PsiElement({)('{')(159,160)
+        member(165,182)
+          1.(165,167)
+            PsiElement(TOKEN_MEMBER_INDEX)('1.')(165,167)
+          member(168,174)
+            member(168,174)
+              PsiElement(TOKEN_SYMBOL)('member')(168,174)
+          PsiElement(:)(':')(174,175)
+          String(176,182)
+            String(176,182)
+              String(176,182)
+                PsiElement(TOKEN_SYMBOL)('String')(176,182)
+        PsiElement(})('}')(183,184)

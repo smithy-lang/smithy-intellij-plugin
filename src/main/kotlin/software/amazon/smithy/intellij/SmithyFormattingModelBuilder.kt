@@ -46,6 +46,11 @@ class SmithyFormattingModelBuilder : FormattingModelBuilder {
             .beforeInside(SmithyTypes.TOKEN_CLOSE_BRACE, SmithyTypes.OBJECT).spacing(0, 0, 0, true, 0)
             .afterInside(SmithyTypes.TOKEN_OPEN_BRACKET, SmithyTypes.ARRAY).spacing(0, 0, 0, true, 0)
             .beforeInside(SmithyTypes.TOKEN_CLOSE_BRACKET, SmithyTypes.ARRAY).spacing(0, 0, 0, true, 0)
+            //No extra spaces within inline collection declarations (IDL 2.1): [Target] and {Key: Value}
+            .afterInside(SmithyTypes.TOKEN_OPEN_BRACKET, SmithyTypes.INLINE_LIST_TARGET).spacing(0, 0, 0, false, 0)
+            .beforeInside(SmithyTypes.TOKEN_CLOSE_BRACKET, SmithyTypes.INLINE_LIST_TARGET).spacing(0, 0, 0, false, 0)
+            .afterInside(SmithyTypes.TOKEN_OPEN_BRACE, SmithyTypes.INLINE_MAP_TARGET).spacing(0, 0, 0, false, 0)
+            .beforeInside(SmithyTypes.TOKEN_CLOSE_BRACE, SmithyTypes.INLINE_MAP_TARGET).spacing(0, 0, 0, false, 0)
             //No extra spaces within trait body
             .afterInside(SmithyTypes.TOKEN_OPEN_PAREN, SmithyTypes.TRAIT_BODY).spacing(0, 0, 0, true, 0)
             .beforeInside(SmithyTypes.TOKEN_CLOSE_PAREN, SmithyTypes.TRAIT_BODY).spacing(0, 0, 0, true, 0)
@@ -57,7 +62,9 @@ class SmithyFormattingModelBuilder : FormattingModelBuilder {
             .spacing(1, 1, 0, true, 0)
             .beforeInside(SmithyTypes.TOKEN_CLOSE_BRACE, TokenSet.forAllMatching { it != SmithyTypes.CONTAINER_BODY })
             .spacing(1, 1, 0, true, 0)
-            //No extra spaces around $
+            //No extra spaces around $ ... but a member index shorthand before an elided member keeps its single space
+            //(this must precede the generic $ rule, since the first matching spacing rule wins).
+            .between(SmithyTypes.MEMBER_INDEX, SmithyTypes.TOKEN_DOLLAR_SIGN).spacing(1, 1, 0, false, 0)
             .around(SmithyTypes.TOKEN_DOLLAR_SIGN).none()
             //No extra spaces before :
             .before(TokenSet.create(SmithyTypes.TOKEN_COLON)).none()
@@ -72,6 +79,8 @@ class SmithyFormattingModelBuilder : FormattingModelBuilder {
             ).spaces(1)
             //Space after : and ,
             .after(TokenSet.create(SmithyTypes.TOKEN_COLON, SmithyTypes.TOKEN_COMMA)).spaces(1)
+            //Exactly one space after a member index shorthand (e.g. "1. member") - column alignment is not applied
+            .after(SmithyTypes.MEMBER_INDEX).spacing(1, 1, 0, false, 0)
             //Spaces around =, :=, for, mixins list, and with
             .around(
                 TokenSet.create(

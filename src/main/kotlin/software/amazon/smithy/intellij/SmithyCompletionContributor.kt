@@ -6,6 +6,7 @@ import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.codeInsight.completion.PrioritizedLookupElement
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiErrorElement
@@ -114,7 +115,13 @@ class SmithyCompletionContributor : CompletionContributor() {
 private fun addShapes(element: PsiElement, results: CompletionResultSet) {
     SmithyDefinedShapeIdIndex.forEach(element.resolveScope) {
         val (namespace, shapeName) = it.split('#', limit = 2)
-        results.addElement(shapeElement(element, namespace, shapeName))
+        //Prefer prelude (smithy.api) shapes: when a user-defined shape shares a simple name with a prelude shape
+        //(e.g. a local "String"), the prelude shape should rank first and be selected by default so completion does
+        //not insert an import for the unrelated shape.
+        val priority = if (namespace == "smithy.api") 1.0 else 0.0
+        results.addElement(
+            PrioritizedLookupElement.withPriority(shapeElement(element, namespace, shapeName), priority)
+        )
     }
 }
 

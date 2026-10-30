@@ -28,6 +28,7 @@ class SmithyColorSettingsPage : ColorSettingsPage {
             AttributesDescriptor("Parenthesis", SmithyColorSettings.PARENS),
             AttributesDescriptor("Shape member", SmithyColorSettings.SHAPE_MEMBER),
             AttributesDescriptor("String", SmithyColorSettings.STRING),
+            AttributesDescriptor("Tagged literal prefix", SmithyColorSettings.TAG),
             AttributesDescriptor("Trait", SmithyColorSettings.TRAIT_NAME),
             AttributesDescriptor("Valid escape sequence", SmithyColorSettings.VALID_ESCAPE_SEQUENCE)
         )

@@ -28,9 +28,13 @@ WHITE_SPACE=\s+
 TOKEN_BOOLEAN=true|false
 TOKEN_SIMPLE_TYPE_NAME=blob|boolean|document|string|byte|short|integer|long|float|double|bigInteger|bigDecimal|timestamp
 TOKEN_SYMBOL=((_+[A-Za-z0-9])|[A-Za-z])[A-Za-z0-9_]*
+TOKEN_MEMBER_INDEX=[1-9][0-9]*\.
 TOKEN_NUMBER=-?(0|([1-9][0-9]*))(\.[0-9]+)?(e[+-]?[0-9]+)?
 TOKEN_STRING=\"((\\['bfnrt/\"\\])|(\\u[0-9A-Fa-f]{4})|(\\?[ \t!#-\[\]-\U10FFFF])|(\\?\r?\n))*\"
 TOKEN_TEXT_BLOCK=\"\"\"\n((\"[^\"])|(\"\"[^\"])|(\\['bfnrt/\"\\])|(\\u[0-9A-Fa-f]{4})|(\\?[ \t!#-\[\]-\U10FFFF])|(\\[\"]{3})|(\\?\r?\n))*\"\"\"
+//Tagged string literal prefix (IDL 2.1), e.g. #re, #b, #hex, #timestamp. Only recognized when followed by a
+//string/text-block (via JFlex trailing context in the rule) so shape-id fragments like "foo#region" are unaffected.
+TOKEN_TAG=#(re|b|hex|timestamp)[ \t]*
 TOKEN_LINE_COMMENT=("//")|("//"[^/\n][\t -\U10FFFF]*)
 TOKEN_DOCUMENTATION_LINE="///"[\t -\U10FFFF]*
 TOKEN_INCOMPLETE_STRING=\"((\\['bfnrt/\"\\])|(\\u[0-9A-Fa-f]{4})|(\\?[ \t!#-\[\]-\U10FFFF]))+
@@ -53,6 +57,7 @@ TOKEN_INCOMPLETE_TEXT_BLOCK=\"\"\"\n((\\['bfnrt/\"\\])|(\\u[0-9A-Fa-f]{4})|(\\?[
   "."                                 { return TOKEN_PERIOD; }
   "$"                                 { return TOKEN_DOLLAR_SIGN; }
   "@"                                 { return TOKEN_AT; }
+  {TOKEN_TAG}/\"                       { return TOKEN_TAG; }
   "#"                                 { return TOKEN_HASH; }
   "apply"                             { return TOKEN_APPLY; }
   "use"                               { return TOKEN_USE; }
@@ -90,6 +95,7 @@ TOKEN_INCOMPLETE_TEXT_BLOCK=\"\"\"\n((\\['bfnrt/\"\\])|(\\u[0-9A-Fa-f]{4})|(\\?[
   {TOKEN_BOOLEAN}                     { return TOKEN_BOOLEAN; }
   {TOKEN_SIMPLE_TYPE_NAME}            { return TOKEN_SIMPLE_TYPE_NAME; }
   {TOKEN_SYMBOL}                      { return TOKEN_SYMBOL; }
+  {TOKEN_MEMBER_INDEX}                { return TOKEN_MEMBER_INDEX; }
   {TOKEN_NUMBER}                      { return TOKEN_NUMBER; }
   {TOKEN_STRING}                      { return TOKEN_STRING; }
   {TOKEN_TEXT_BLOCK}                  { return TOKEN_TEXT_BLOCK; }

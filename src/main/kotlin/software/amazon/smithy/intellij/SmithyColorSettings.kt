@@ -28,6 +28,7 @@ object SmithyColorSettings {
     val PARENS = createTextAttributesKey("SMITHY_PARENS", DefaultLanguageHighlighterColors.PARENTHESES)
     val SHAPE_MEMBER = createTextAttributesKey("SMITHY_SHAPE_MEMBER", DefaultLanguageHighlighterColors.INSTANCE_FIELD)
     val STRING = createTextAttributesKey("SMITHY_STRING", DefaultLanguageHighlighterColors.STRING)
+    val TAG = createTextAttributesKey("SMITHY_TAG", DefaultLanguageHighlighterColors.METADATA)
     val TRAIT_NAME = createTextAttributesKey("SMITHY_TRAIT_NAME", DefaultLanguageHighlighterColors.METADATA)
     val VALID_ESCAPE_SEQUENCE = createTextAttributesKey(
         "SMITHY_VALID_ESCAPE_SEQUENCE", DefaultLanguageHighlighterColors.VALID_STRING_ESCAPE
