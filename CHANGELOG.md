@@ -2,6 +2,16 @@
 
 # Smithy IntelliJ Plugin Changelog
 
+## [2.0.20]
+
+### Added
+
+- Added support for the IDL 2.1 syntax changes
+
+### Fixed
+
+- Fixed crash on IntelliJ 2026.3
+
 ## [2.0.19]
 
 ### Changed

@@ -11,7 +11,7 @@ plugins {
 apply plugin: 'org.jetbrains.changelog'
 
 group 'software.amazon.smithy'
-version '2.0.19'
+version '2.0.20'
 
 repositories {
     mavenCentral()
