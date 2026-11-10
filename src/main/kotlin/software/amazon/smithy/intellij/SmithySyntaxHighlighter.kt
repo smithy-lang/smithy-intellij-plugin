@@ -50,5 +50,5 @@ class SmithySyntaxHighlighter : SyntaxHighlighterBase() {
     }
 
     override fun getHighlightingLexer() = SmithyLexer()
-    override fun getTokenHighlights(tokenType: IElementType?) = TOKEN_HIGHLIGHTS[tokenType] ?: emptyArray()
+    override fun getTokenHighlights(tokenType: IElementType) = TOKEN_HIGHLIGHTS[tokenType] ?: emptyArray()
 }

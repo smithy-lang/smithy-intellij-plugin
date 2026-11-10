@@ -19,9 +19,12 @@
     <li>and more coming..</li>
     </ul>
     <br/>
-    <a href="https://awslabs.github.io/smithy/">Homepage</a><span> | </span><a href="https://github.com/iancaffey/smithy-intellij-plugin">GitHub</a>
+    <a href="https://smithy.io/">Homepage</a><span> | </span><a href="https://github.com/smithy-lang/smithy-intellij-plugin">GitHub</a>
     ]]></description>
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.lang</depends>
+    <depends>com.intellij.modules.spellchecker</depends>
+    <depends>com.intellij.structureView</depends>
     <actions>
         <action id="software.amazon.smithy.intellij.actions.SmithyCreateFileAction"
                 class="software.amazon.smithy.intellij.actions.SmithyCreateFileAction"

@@ -37,7 +37,7 @@ class SmithyMissingPreludeNotificationProvider : EditorNotifications.Provider<Ed
             it.text =
                 "Unable to find the Smithy prelude. Make sure either the Smithy CLI or Smithy Model is added as a dependency within your build system."
             it.createActionLabel("Need help?") {}
-                .setHyperlinkTarget("https://github.com/iancaffey/smithy-intellij-plugin/issues")
+                .setHyperlinkTarget("https://github.com/smithy-lang/smithy-intellij-plugin/issues")
         }
     }
 }

@@ -2,7 +2,7 @@ package software.amazon.smithy.intellij.templates
 
 import com.intellij.codeInsight.template.TemplateActionContext
 import com.intellij.codeInsight.template.TemplateContextType
-import com.intellij.refactoring.suggested.startOffset
+import com.intellij.psi.util.startOffset
 import software.amazon.smithy.intellij.SmithyFile
 
 /**

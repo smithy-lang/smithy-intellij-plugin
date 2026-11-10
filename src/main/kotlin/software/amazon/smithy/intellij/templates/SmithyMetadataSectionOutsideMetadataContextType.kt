@@ -4,8 +4,8 @@ import com.intellij.codeInsight.template.TemplateActionContext
 import com.intellij.codeInsight.template.TemplateContextType
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.util.PsiTreeUtil.getChildOfType
-import com.intellij.refactoring.suggested.endOffset
-import com.intellij.refactoring.suggested.startOffset
+import com.intellij.psi.util.endOffset
+import com.intellij.psi.util.startOffset
 import software.amazon.smithy.intellij.SmithyFile
 import software.amazon.smithy.intellij.psi.SmithyMetadata
 import software.amazon.smithy.intellij.psi.SmithyNamespace

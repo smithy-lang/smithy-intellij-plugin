@@ -1,10 +1,10 @@
 package software.amazon.smithy.intellij.actions
 
 import com.intellij.codeInsight.hint.QuestionAction
-import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.ide.util.DefaultPsiElementCellRenderer
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.PopupStep
@@ -43,7 +43,12 @@ class SmithyAddImportAction(
         val popup = JBPopupFactory.getInstance().createListPopup(project, step) {
             DefaultPsiElementCellRenderer()
         }
-        NavigationUtil.hidePopupIfDumbModeStarts(popup, project)
+        // Hide the popup if indexing starts, since shape resolution requires indices
+        if (!DumbService.isDumb(project)) {
+            project.messageBus.connect(popup).subscribe(DumbService.DUMB_MODE, object : DumbService.DumbModeListener {
+                override fun enteredDumbMode() = popup.cancel()
+            })
+        }
         popup.showInBestPositionFor(editor)
         return true
     }

@@ -987,6 +987,10 @@ interface SmithyTaggedStringExt : SmithyCharSequence {
 abstract class SmithyTaggedStringMixin(node: ASTNode) : SmithyPrimitiveImpl(node), SmithyTaggedString {
     override val tag: String get() = firstChild.text.removePrefix("#").trim()
 
+    //Same as the reference inherited from SmithyValueMixin, but declared here so the JVM getter is emitted on this
+    //class (otherwise it clashes with PsiElement.getReference() inherited through the generated Java interfaces)
+    override val reference by lazy { SmithyShapeReference(this) }
+
     //Highlighting only: a tagged literal uses tag-specific escape/encoding rules (e.g. #re takes backslashes
     //literally, #b/#hex decode bytes), so the standard string escape processing in SmithyString/SmithyTextBlock must
     //NOT be applied to its content - doing so would mangle or null out the value (e.g. "\d" is not a valid plain-string
